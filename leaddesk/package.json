@@ -1,0 +1,21 @@
+{
+  "name": "leaddesk-mini",
+  "version": "1.0.0",
+  "description": "LeadDesk Mini — a small lead-capture product with a public landing page and an admin dashboard. Built for Digital Heroes Training Task.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "seed": "node seed.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["leads", "express", "sqlite", "crm"],
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.19.2"
+  }
+}

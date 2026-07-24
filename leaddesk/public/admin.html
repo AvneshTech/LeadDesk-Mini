@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LeadDesk — Admin</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="admin">
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/"><span class="brand-mark">◆</span> LeadDesk</a>
+      <div class="nav-right">
+        <span class="nav-link current">Admin</span>
+        <button id="logout-btn" class="logout-btn" hidden>Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Login gate (shown when not authenticated) ===== -->
+  <main class="login-wrap" id="login-view" hidden>
+    <section class="card login-card">
+      <h1>Admin sign in</h1>
+      <p class="muted">Sign in to manage leads.</p>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" required />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+        </div>
+        <button type="submit" class="btn btn-primary" id="login-btn">Sign in</button>
+        <p class="form-status" id="login-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+
+  <!-- ===== Dashboard (shown when authenticated) ===== -->
+  <main class="admin-main wrap" id="dash-view" hidden>
+    <div class="admin-head">
+      <h1>Leads</h1>
+      <p class="muted">Signed in as <b id="who">–</b>. Manage and track incoming inquiries.</p>
+    </div>
+
+    <div class="stats" id="stats">
+      <div class="stat"><span class="stat-n" data-stat="total">–</span><span class="stat-l">Total</span></div>
+      <div class="stat stat-new"><span class="stat-n" data-stat="New">–</span><span class="stat-l">New</span></div>
+      <div class="stat stat-contacted"><span class="stat-n" data-stat="Contacted">–</span><span class="stat-l">Contacted</span></div>
+      <div class="stat stat-closed"><span class="stat-n" data-stat="Closed">–</span><span class="stat-l">Closed</span></div>
+    </div>
+
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search name, email, or message…" autocomplete="off" />
+      <select id="status-filter">
+        <option value="">All statuses</option>
+        <option value="New">New</option>
+        <option value="Contacted">Contacted</option>
+        <option value="Closed">Closed</option>
+      </select>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Budget</th><th>Message</th><th>Received</th><th>Status</th></tr>
+        </thead>
+        <tbody id="leads-body">
+          <tr><td colspan="6" class="empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <a href="https://digitalheroesco.com" target="_blank" rel="noopener">
+        Built for Digital Heroes Training Task
+      </a>
+    </div>
+  </footer>
+
+  <script src="admin.js"></script>
+</body>
+</html>
