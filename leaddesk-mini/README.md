@@ -133,6 +133,30 @@ Indexes on `leads(created_at)`, `leads(status)`, and `sessions(expires_at)`.
 
 ---
 
+## Prerequisites
+
+| Requirement    | Version           | Notes                                                        |
+|----------------|-------------------|-------------------------------------------------------------|
+| **Node.js**    | **18 or newer**   | Enforced via `engines` in `package.json` (uses built-in `crypto`) |
+| **npm**        | **9+**            | Ships with Node 18+                                          |
+| **PostgreSQL** | any modern Postgres | e.g. **Neon** (free tier), Supabase, Railway, Render, or local. Optional — offline demo mode uses in-memory `pg-mem` |
+
+> Tip: a free **Neon** Postgres database (`postgres://…neon.tech/neondb?sslmode=require`) is the quickest way to get a real database. Drop the connection string into `DATABASE_URL`.
+
+## Environment variables
+
+Copy `.env.example` → `.env` and fill in the values you need. All are optional for the offline demo; `DATABASE_URL` is the only one required for a real deployment.
+
+| Variable         | Required            | Default            | Description                                                      |
+|------------------|---------------------|--------------------|------------------------------------------------------------------|
+| `DATABASE_URL`   | Yes (real DB)       | — (uses `pg-mem`)  | Postgres connection string (Neon/Supabase/Railway/Render/local). If unset, the app runs in-memory. |
+| `PORT`           | No                  | `3000`             | HTTP port to listen on.                                          |
+| `NODE_ENV`       | Recommended (prod)  | `development`      | Set to `production` on your host so session cookies are `Secure`. |
+| `ADMIN_USERNAME` | No                  | `admin`            | Username for the first admin, seeded on startup.                 |
+| `ADMIN_PASSWORD` | Recommended         | `your_secure_password` | Password for the first admin (stored scrypt-hashed, never plaintext). Set a strong value in production. |
+| `PGSSL`          | No                  | enabled            | Set to `disable` for a local Postgres without SSL.               |
+| `DB_DRIVER`      | No                  | auto               | Set to `mem` to force in-memory `pg-mem` (offline demo).         |
+
 ## Quick start (offline demo — no database needed)
 
 ```bash
