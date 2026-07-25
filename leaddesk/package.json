@@ -13,10 +13,17 @@
   "engines": {
     "node": ">=18"
   },
-  "keywords": ["leads", "express", "sqlite", "crm"],
+  "keywords": [
+    "leads",
+    "express",
+    "sqlite",
+    "crm"
+  ],
   "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^11.3.0",
-    "express": "^4.19.2"
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "pg": "^8.22.0"
   }
 }
