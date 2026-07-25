@@ -120,7 +120,6 @@ flowchart LR
 
 ## 📸 Screenshots
 
-> _Add screenshots to a `docs/` folder and they'll render here._
 
 | Landing Page | Admin Dashboard |
 |:---:|:---:|
