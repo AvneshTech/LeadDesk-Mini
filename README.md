@@ -22,8 +22,8 @@
 
 | Resource | URL |
 |----------|-----|
-| 🌐 **Live Landing Page** | https://leaddesk-mini-vewi.onrender.com/ |
-| 🔐 **Admin Dashboard** | https://leaddesk-mini-vewi.onrender.com/admin |
+| 🌐 **Live Landing Page** | https://leaddesk-mini-5fq5.onrender.com |
+| 🔐 **Admin Dashboard** | https://leaddesk-mini-5fq5.onrender.com/admin |
 | 💻 **GitHub Repository** | https://github.com/AvneshTech/LeadDesk-Mini |
 
 > **Built for Digital Heroes Training Task** — [digitalheroesco.com](https://digitalheroesco.com)
@@ -201,7 +201,7 @@ Passwords must be ≥ 8 characters and are always stored scrypt-hashed.
 <summary><strong>Example: create a lead</strong></summary>
 
 ```bash
-curl -X POST https://leaddesk-mini-vewi.onrender.com/api/leads \
+curl -X POST https://leaddesk-mini-5fq5.onrender.com/api/leads \
   -H 'Content-Type: application/json' \
   -d '{
     "name": "Jane Doe",
