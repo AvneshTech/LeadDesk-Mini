@@ -124,7 +124,7 @@ flowchart LR
 
 | Landing Page | Admin Dashboard |
 |:---:|:---:|
-| ![Landing Page](docs/landing.png) | ![Admin Dashboard](docs/admin.png) |
+| ![Landing Page](image/Landing.png) | ![Admin Dashboard](image/Admin.png) |
 
 ---
 
@@ -380,7 +380,7 @@ LeadDesk-Mini/
 
 ## 👤 Author
 
-**AvneshTech**
+**Avnesh Kumar**
 
 [![GitHub](https://img.shields.io/badge/GitHub-AvneshTech-181717?style=flat-square&logo=github)](https://github.com/AvneshTech)
 
