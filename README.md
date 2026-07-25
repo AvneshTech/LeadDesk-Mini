@@ -389,7 +389,7 @@ Project: [LeadDesk-Mini](https://github.com/AvneshTech/LeadDesk-Mini)
 
 ## 📄 License
 
-Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
+NONE.
 
 ---
 
