@@ -53,9 +53,34 @@ The requirement: *"real login… not a hardcoded string… sessions or tokens ha
    stays open so anyone can submit the landing form. Logout deletes the session row
    and clears the cookie.
 
-4. **First admin bootstrap.**
+4. **First admin bootstrap — no public signup (by design).**
+   `/admin` is a staff-only area, so there is intentionally no self-service signup.
    On startup the app seeds one admin from `ADMIN_USERNAME` / `ADMIN_PASSWORD`
-   (env vars). Rotate these per environment; the stored value is always hashed.
+   (env vars) — that's your login. Rotate these per environment; the stored value
+   is always hashed.
+
+### Managing admin logins
+
+Your login comes from the environment variables — set them before first boot:
+
+| Environment            | Login                                                            |
+|------------------------|-----------------------------------------------------------------|
+| `npm run dev` (offline)| `admin` / `DigitalHeroes!2024` (defaults)                       |
+| Local `.env`           | your `ADMIN_USERNAME` / `ADMIN_PASSWORD`                        |
+| Render (blueprint)     | `admin` / auto-generated password (Service → **Environment** tab)|
+| Railway / other        | the variables you set on the host                               |
+
+To add another admin or change a password after deploy (still no signup page):
+
+```bash
+# against your real database (DATABASE_URL must be set)
+node create-admin.js <username> <password>
+# e.g.
+node create-admin.js amit 'S0me-Strong-Pass!'
+```
+
+If the username exists, its password is updated; otherwise a new admin is created.
+Passwords must be at least 8 characters and are stored scrypt-hashed.
 
 ---
 
@@ -183,6 +208,7 @@ leaddesk-mini/
 ├── validation.js     # Server-side validation (mirrors client)
 ├── schema.sql        # PostgreSQL schema (leads, admin_users, sessions)
 ├── seed.js           # Sample leads (npm run seed)
+├── create-admin.js   # Create/update an admin login (no signup by design)
 ├── package.json
 ├── Procfile          # web: node server.js
 ├── render.yaml       # Render blueprint (web + free Postgres)
