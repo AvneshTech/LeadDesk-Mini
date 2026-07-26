@@ -379,7 +379,7 @@ LeadDesk-Mini/
 
 ## 👤 Author
 
-**Avnesh Kumar**
+**Avnesh **
 
 [![GitHub](https://img.shields.io/badge/GitHub-AvneshTech-181717?style=flat-square&logo=github)](https://github.com/AvneshTech)
 
