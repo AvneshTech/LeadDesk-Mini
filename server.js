@@ -10,10 +10,59 @@ const { validateLead, BUDGET_RANGES, STATUSES } = require('./validation');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const LOGIN_ATTEMPT_LIMIT = 5;
+const LOGIN_ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
+const loginAttempts = new Map();
 
 app.set('trust proxy', 1); // correct Secure cookies behind a hosting proxy
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+function getLoginAttemptKey(req) {
+  const forwardedFor = req.headers['x-forwarded-for'];
+  const ip = Array.isArray(forwardedFor)
+    ? forwardedFor[0]
+    : (typeof forwardedFor === 'string' ? forwardedFor.split(',')[0] : null);
+  const username = String(req.body?.username || '').trim().toLowerCase();
+  return `${ip || req.ip || req.socket.remoteAddress || 'unknown'}:${username}`;
+}
+
+function checkLoginRateLimit(req, res) {
+  const key = getLoginAttemptKey(req);
+  const now = Date.now();
+  const entry = loginAttempts.get(key);
+
+  if (!entry || entry.resetAt <= now) {
+    loginAttempts.set(key, { count: 0, resetAt: now + LOGIN_ATTEMPT_WINDOW_MS });
+    return true;
+  }
+
+  if (entry.count >= LOGIN_ATTEMPT_LIMIT) {
+    const retryAfter = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
+    res.set('Retry-After', String(retryAfter));
+    res.status(429).json({ error: 'Too many login attempts. Please try again later.' });
+    return false;
+  }
+
+  return true;
+}
+
+function recordFailedLogin(req) {
+  const key = getLoginAttemptKey(req);
+  const now = Date.now();
+  const entry = loginAttempts.get(key) || { count: 0, resetAt: now + LOGIN_ATTEMPT_WINDOW_MS };
+  if (entry.resetAt <= now) {
+    entry.count = 0;
+    entry.resetAt = now + LOGIN_ATTEMPT_WINDOW_MS;
+  }
+  entry.count += 1;
+  loginAttempts.set(key, entry);
+  return entry;
+}
+
+function resetLoginAttempts(req) {
+  loginAttempts.delete(getLoginAttemptKey(req));
+}
 
 // ---------- public API ----------
 app.get('/api/health', (req, res) => {
@@ -49,6 +98,7 @@ app.post('/api/admin/login', async (req, res) => {
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required.' });
   }
+  if (!checkLoginRateLimit(req, res)) return;
   try {
     const { rows } = await db.query(
       'SELECT id, username, password_hash FROM admin_users WHERE username = $1',
@@ -57,8 +107,12 @@ app.post('/api/admin/login', async (req, res) => {
     const user = rows[0];
     // Always run verify to reduce timing differences; generic error message.
     const ok = user && auth.verifyPassword(password, user.password_hash);
-    if (!ok) return res.status(401).json({ error: 'Invalid username or password.' });
+    if (!ok) {
+      recordFailedLogin(req);
+      return res.status(401).json({ error: 'Invalid username or password.' });
+    }
 
+    resetLoginAttempts(req);
     const sid = await auth.createSession(user.id);
     auth.setSessionCookie(res, sid);
     return res.json({ user: { id: user.id, username: user.username } });

@@ -17,6 +17,18 @@ const db = require('./db');
 
 const COOKIE = 'ld_sid';
 const SESSION_TTL_MS = 1000 * 60 * 60 * 8; // 8 hours
+const DEMO_ADMIN_PASSWORD = 'DigitalHeroes!2024';
+
+function resolveAdminCredentials() {
+  const username = process.env.ADMIN_USERNAME || 'admin';
+  const password = process.env.ADMIN_PASSWORD || (process.env.NODE_ENV === 'production' ? null : DEMO_ADMIN_PASSWORD);
+
+  if (!password) {
+    throw new Error('ADMIN_PASSWORD must be set in production.');
+  }
+
+  return { username, password };
+}
 
 // ---------- password hashing (scrypt) ----------
 function hashPassword(password) {
@@ -38,8 +50,7 @@ function verifyPassword(password, stored) {
 
 // ---------- bootstrap first admin ----------
 async function ensureAdminUser() {
-  const username = process.env.ADMIN_USERNAME || 'admin';
-  const password = process.env.ADMIN_PASSWORD || 'DigitalHeroes!2024';
+  const { username, password } = resolveAdminCredentials();
   const { rows } = await db.query('SELECT id FROM admin_users WHERE username = $1', [username]);
   if (rows.length === 0) {
     await db.query(
@@ -47,8 +58,8 @@ async function ensureAdminUser() {
       [username, hashPassword(password)]
     );
     console.log(`Seeded admin user "${username}".`);
-    if (!process.env.ADMIN_PASSWORD) {
-      console.log('  (Default password in use — set ADMIN_PASSWORD in production.)');
+    if (!process.env.ADMIN_PASSWORD && process.env.NODE_ENV !== 'production') {
+      console.log('  (Using the demo default password. Set ADMIN_PASSWORD for a real deployment.)');
     }
   }
 }
