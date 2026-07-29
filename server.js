@@ -9,7 +9,7 @@ const auth = require('./auth');
 const { validateLead, BUDGET_RANGES, STATUSES } = require('./validation');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const DEFAULT_PORT = Number(process.env.PORT || 3000);
 const LOGIN_ATTEMPT_LIMIT = 5;
 const LOGIN_ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
 const loginAttempts = new Map();
@@ -198,19 +198,43 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-async function start() {
+async function start(port = DEFAULT_PORT) {
   await db.init();
   await auth.ensureAdminUser();
-  app.listen(PORT, () => {
-    console.log(`LeadDesk Mini running on http://localhost:${PORT}`);
-    console.log(`  Landing: http://localhost:${PORT}/`);
-    console.log(`  Admin:   http://localhost:${PORT}/admin`);
-    console.log(`  DB:      ${db.USE_MEM ? 'pg-mem (in-memory)' : 'PostgreSQL'}`);
+
+  return new Promise((resolve, reject) => {
+    const server = app.listen(port, () => {
+      console.log(`LeadDesk Mini running on http://localhost:${port}`);
+      console.log(`  Landing: http://localhost:${port}/`);
+      console.log(`  Admin:   http://localhost:${port}/admin`);
+      console.log(`  DB:      ${db.USE_MEM ? 'pg-mem (in-memory)' : 'PostgreSQL'}`);
+      resolve(server);
+    });
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        if (port === DEFAULT_PORT) {
+          console.warn(`Port ${port} is busy; trying ${port + 1} instead.`);
+          server.close();
+          resolve(start(port + 1));
+          return;
+        }
+        console.error(`Port ${port} is already in use. Stop the existing process or set PORT to another value.`);
+      } else {
+        console.error('Failed to start:', err);
+      }
+      reject(err);
+    });
   });
 }
 
 if (require.main === module) {
-  start().catch((err) => { console.error('Failed to start:', err); process.exit(1); });
+  start().catch((err) => {
+    if (err && err.code !== 'EADDRINUSE') {
+      console.error('Failed to start:', err);
+    }
+    process.exit(1);
+  });
 }
 
 module.exports = { app, start };
