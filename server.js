@@ -23,11 +23,19 @@ function getLoginAttemptKey(req) {
   const ip = Array.isArray(forwardedFor)
     ? forwardedFor[0]
     : (typeof forwardedFor === 'string' ? forwardedFor.split(',')[0] : null);
-  const username = String(req.body?.username || '').trim().toLowerCase();
-  return `${ip || req.ip || req.socket.remoteAddress || 'unknown'}:${username}`;
+  return `${ip || req.ip || req.socket.remoteAddress || 'unknown'}`;
+}
+
+function pruneExpiredLoginAttempts(now = Date.now()) {
+  for (const [key, entry] of loginAttempts.entries()) {
+    if (!entry || entry.resetAt <= now) {
+      loginAttempts.delete(key);
+    }
+  }
 }
 
 function checkLoginRateLimit(req, res) {
+  pruneExpiredLoginAttempts();
   const key = getLoginAttemptKey(req);
   const now = Date.now();
   const entry = loginAttempts.get(key);
@@ -58,6 +66,10 @@ function recordFailedLogin(req) {
   entry.count += 1;
   loginAttempts.set(key, entry);
   return entry;
+}
+
+function asyncHandler(fn) {
+  return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 }
 
 function resetLoginAttempts(req) {
@@ -122,20 +134,20 @@ app.post('/api/admin/login', async (req, res) => {
   }
 });
 
-app.post('/api/admin/logout', async (req, res) => {
+app.post('/api/admin/logout', asyncHandler(async (req, res) => {
   await auth.destroySession(req);
   auth.clearSessionCookie(res);
   res.json({ ok: true });
-});
+}));
 
-app.get('/api/admin/me', async (req, res) => {
+app.get('/api/admin/me', asyncHandler(async (req, res) => {
   const user = await auth.getSessionUser(req);
   if (!user) return res.status(401).json({ error: 'Not authenticated.' });
   res.json({ user: { id: user.id, username: user.username } });
-});
+}));
 
 // ---------- protected admin API ----------
-app.get('/api/leads', auth.requireAuth(), async (req, res) => {
+app.get('/api/leads', auth.requireAuth(), asyncHandler(async (req, res) => {
   const search = (req.query.search || '').toString().trim();
   const status = (req.query.status || '').toString().trim();
   const where = [];
@@ -166,9 +178,9 @@ app.get('/api/leads', auth.requireAuth(), async (req, res) => {
     console.error('List leads failed:', err.message);
     return res.status(500).json({ error: 'Could not load leads.' });
   }
-});
+}));
 
-app.patch('/api/leads/:id/status', auth.requireAuth(), async (req, res) => {
+app.patch('/api/leads/:id/status', auth.requireAuth(), asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const status = (req.body && req.body.status || '').toString().trim();
   if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'Invalid lead id.' });
@@ -188,7 +200,7 @@ app.patch('/api/leads/:id/status', auth.requireAuth(), async (req, res) => {
     console.error('Update status failed:', err.message);
     return res.status(500).json({ error: 'Could not update status.' });
   }
-});
+}));
 
 // ---------- static + pages ----------
 // (static comes after API so /api/* is never shadowed)
@@ -196,6 +208,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.use((err, req, res, next) => {
+  console.error('Unhandled request error:', err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: 'Internal server error.' });
 });
 
 async function start(port = DEFAULT_PORT) {
