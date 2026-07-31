@@ -114,6 +114,7 @@ form.addEventListener('submit', async (e) => {
     statusEl.textContent = 'Network error. Please try again.';
     statusEl.classList.add('err');
   } finally {
+    if (!submitBtn.isConnected) return;
     submitBtn.disabled = false;
     submitBtn.textContent = 'Send inquiry';
   }
