@@ -130,10 +130,14 @@ async function destroySession(req) {
 // ---------- express middleware ----------
 function requireAuth() {
   return async (req, res, next) => {
-    const user = await getSessionUser(req);
-    if (!user) return res.status(401).json({ error: 'Authentication required.' });
-    req.user = user;
-    next();
+    try {
+      const user = await getSessionUser(req);
+      if (!user) return res.status(401).json({ error: 'Authentication required.' });
+      req.user = user;
+      next();
+    } catch (err) {
+      next(err);
+    }
   };
 }
 
